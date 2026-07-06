@@ -8,8 +8,8 @@ from langchain_core.documents import Document
 
 class Reranker:
 
-    def __init__(self):
-        self.model = CrossEncoder("BAAI/bge-reranker-base")
+    def __init__(self, model_name: str = "BAAI/bge-reranker-base"):
+        self.model = CrossEncoder(model_name)
 
     def rerank(
         self,
