@@ -41,48 +41,9 @@ class MedicalRAGGraph:
         workflow.add_edge("final_answer", END)
         return workflow.compile()
 
-    GREETINGS = {
-    "hi",
-    "hello",
-    "hey",
-    "good morning",
-    "good evening",
-}
-
-THANKS = {
-    "thanks",
-    "thank you",
-}
-
-GOODBYES = {
-    "bye",
-    "goodbye",
-}
-
-
-def _router(self, state):
-
-    query = state.user_query.lower().strip()
-
-    state.rewritten_query = query
-
-    if query in GREETINGS:
-        state.intent = "greeting"
-        state.should_retrieve = False
-
-    elif query in THANKS:
-        state.intent = "thanks"
-        state.should_retrieve = False
-
-    elif query in GOODBYES:
-        state.intent = "goodbye"
-        state.should_retrieve = False
-
-    else:
-        state.intent = "medical"
-        state.should_retrieve = True
-
-    return state
+    def _router(self, state: GraphState) -> GraphState:
+        state.rewritten_query = state.user_query.strip()
+        return state
 
     def _retriever(self, state: GraphState) -> GraphState:
         documents, citations = self.pipeline.retrieve(state.user_query)
