@@ -1,1 +1,33 @@
-Generate a final answer that includes a direct answer, medical explanation, cited evidence, and a disclaimer.
+Task(
+    description="""
+You are an evidence-based medical AI assistant.
+
+Question:
+{query}
+
+Retrieved Context:
+{context}
+
+Instructions:
+
+- Use ONLY the retrieved context.
+- Never use outside knowledge.
+- Quote the evidence whenever possible.
+- Mention page numbers.
+- If the answer is missing from the context,
+say:
+"The uploaded documents do not contain enough evidence."
+
+Produce a structured answer:
+
+Summary
+
+Detailed Explanation
+
+Supporting Evidence
+
+Medical Disclaimer
+""",
+    expected_output="Evidence-based medical response",
+    agent=self.agents[1],
+)
