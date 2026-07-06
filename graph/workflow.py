@@ -99,44 +99,50 @@ class MedicalRAGGraph:
         )
 
         return state
+
     def _retriever(self, state: GraphState) -> GraphState:
+        """
+        Retrieve relevant medical documents.
+        """
+
         if not state.should_retrieve:
             logger.info("Skipping retrieval.")
-                return state
-    
-            documents, citations = self.pipeline.retrieve(
-                state.rewritten_query
-            )
-    
-            if not documents:
-                logger.warning("No documents retrieved.")
-    
-                state.retrieved_documents = []
-                state.citations = []
-    
-                return state
-    
-            state.retrieved_documents = [
-                doc.metadata.copy() | {
-                    "content": doc.page_content
-                }
-                for doc in documents
-            ]
-    
-            state.citations = [
-                {
-                    "source": c.source,
-                    "page": c.page,
-                    "snippet": c.snippet,
-                }
-                for c in citations
-            ]
-    
-            logger.info(
-                "Retrieved %d documents.",
-                len(state.retrieved_documents),
-            )
-    
+            return state
+
+        documents, citations = self.pipeline.retrieve(
+            state.rewritten_query
+        )
+
+        if not documents:
+            logger.warning("No documents retrieved.")
+
+            state.retrieved_documents = []
+            state.citations = []
+
+            return state
+
+        state.retrieved_documents = [
+            doc.metadata.copy()
+            | {
+                "content": doc.page_content,
+            }
+            for doc in documents
+        ]
+
+        state.citations = [
+            {
+                "source": c.source,
+                "page": c.page,
+                "snippet": c.snippet,
+            }
+            for c in citations
+        ]
+
+        logger.info(
+            "Retrieved %d documents.",
+            len(state.retrieved_documents),
+        )
+
         return state
 
     def _hybrid_search(self, state: GraphState) -> GraphState:
@@ -149,11 +155,7 @@ class MedicalRAGGraph:
         return state
 
     def _reranker(self, state: GraphState) -> GraphState:
-
-        state.reranked_documents = (
-            state.retrieved_documents
-        )
-
+        state.reranked_documents = state.retrieved_documents
         return state
 
     def _medical_research(
@@ -193,16 +195,9 @@ class MedicalRAGGraph:
     ) -> GraphState:
 
         if state.retrieved_documents:
-
-            state.validation = (
-                "Evidence found."
-            )
-
+            state.validation = "Evidence found."
         else:
-
-            state.validation = (
-                "No supporting evidence."
-            )
+            state.validation = "No supporting evidence."
 
         return state
 
@@ -210,7 +205,6 @@ class MedicalRAGGraph:
         self,
         state: GraphState,
     ) -> GraphState:
-
         return state
 
     def _generator(
@@ -222,36 +216,22 @@ class MedicalRAGGraph:
         """
 
         if state.intent == "greeting":
-
-            state.answer = (
-                "Hello! 👋 How can I help you today?"
-            )
-
+            state.answer = "Hello! 👋 How can I help you today?"
             return state
 
         if state.intent == "thanks":
-
-            state.answer = (
-                "You're welcome! 😊"
-            )
-
+            state.answer = "You're welcome! 😊"
             return state
 
         if state.intent == "goodbye":
-
-            state.answer = (
-                "Goodbye! Take care."
-            )
-
+            state.answer = "Goodbye! Take care."
             return state
 
         if not state.retrieved_documents:
-
             state.answer = (
                 "I couldn't find relevant medical "
                 "evidence in the uploaded documents."
             )
-
             return state
 
         # Temporary answer.
@@ -272,7 +252,6 @@ class MedicalRAGGraph:
     ) -> GraphState:
 
         state.final_response = state.answer
-
         return state
 
     def run(
