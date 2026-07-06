@@ -137,7 +137,7 @@ class MedicalRAGGraph:
                 len(state.retrieved_documents),
             )
     
-            return state
+        return state
 
     def _hybrid_search(self, state: GraphState) -> GraphState:
         """
