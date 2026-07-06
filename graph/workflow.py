@@ -100,9 +100,6 @@ class MedicalRAGGraph:
 
         return state
         def _retriever(self, state: GraphState) -> GraphState:
-        """
-        Retrieve relevant medical documents.
-        """
 
         if not state.should_retrieve:
             logger.info("Skipping retrieval.")
