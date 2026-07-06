@@ -99,9 +99,9 @@ class MedicalRAGGraph:
         )
 
         return state
-        def _retriever(self, state: GraphState) -> GraphState:
-            if not state.should_retrieve:
-                logger.info("Skipping retrieval.")
+    def _retriever(self, state: GraphState) -> GraphState:
+        if not state.should_retrieve:
+            logger.info("Skipping retrieval.")
                 return state
     
             documents, citations = self.pipeline.retrieve(
