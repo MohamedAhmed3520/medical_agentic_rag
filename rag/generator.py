@@ -1,24 +1,15 @@
 from __future__ import annotations
 
-from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
+import requests
 
 from config import get_settings
 
 
 class MedicalGenerator:
-    """Generate grounded medical answers using OpenRouter."""
 
-    def __init__(self) -> None:
-        settings = get_settings()
+    def __init__(self):
 
-        self.llm = ChatOpenAI(
-            api_key=settings.openrouter_api_key,
-            base_url=settings.openrouter_base_url,
-            model=settings.model,
-            temperature=settings.temperature,
-            max_tokens=settings.max_tokens,
-        )
+        self.settings = get_settings()
 
     def generate(
         self,
@@ -27,44 +18,50 @@ class MedicalGenerator:
     ) -> str:
 
         if not context.strip():
+
             return (
                 "I couldn't find enough information "
-                "in the uploaded medical documents."
+                "in the uploaded documents."
             )
 
-        messages = [
-            SystemMessage(
-                content="""
-You are an expert Medical AI Assistant.
+        headers = {
+            "Authorization": f"Bearer {self.settings.openrouter_api_key}",
+            "Content-Type": "application/json",
+        }
 
-Rules:
+        payload = {
+            "model": self.settings.model,
+            "temperature": self.settings.temperature,
+            "max_tokens": self.settings.max_tokens,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an expert medical assistant. "
+                        "Answer ONLY using the provided medical context. "
+                        "Do not hallucinate. "
+                        "If the answer is not in the context, clearly say so."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Medical Context:\n\n{context}\n\n"
+                        f"Question:\n{question}"
+                    ),
+                },
+            ],
+        }
 
-1. Answer ONLY from the supplied context.
-2. Never invent medical facts.
-3. If the answer is not contained in the context,
-   clearly say so.
-4. Be concise.
-5. Use bullet points whenever appropriate.
-6. Explain medical terms in simple language.
-7. Mention when the evidence comes from the uploaded
-   medical documents.
-"""
-            ),
-            HumanMessage(
-                content=f"""
-Medical Context
+        response = requests.post(
+            f"{self.settings.openrouter_base_url}/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=60,
+        )
 
-{context}
+        response.raise_for_status()
 
--------------------------
+        data = response.json()
 
-Question
-
-{question}
-"""
-            ),
-        ]
-
-        response = self.llm.invoke(messages)
-
-        return response.content.strip()
+        return data["choices"][0]["message"]["content"].strip()
