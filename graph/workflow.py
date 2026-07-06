@@ -153,12 +153,6 @@ class MedicalRAGGraph:
         return state
 
     def _reranker(self, state: GraphState) -> GraphState:
-        """
-        Placeholder.
-
-        CrossEncoder reranking will later
-        reorder retrieved documents.
-        """
 
         state.reranked_documents = (
             state.retrieved_documents
