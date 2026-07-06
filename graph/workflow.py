@@ -100,45 +100,44 @@ class MedicalRAGGraph:
 
         return state
         def _retriever(self, state: GraphState) -> GraphState:
-
-        if not state.should_retrieve:
-            logger.info("Skipping retrieval.")
+            if not state.should_retrieve:
+                logger.info("Skipping retrieval.")
+                return state
+    
+            documents, citations = self.pipeline.retrieve(
+                state.rewritten_query
+            )
+    
+            if not documents:
+                logger.warning("No documents retrieved.")
+    
+                state.retrieved_documents = []
+                state.citations = []
+    
+                return state
+    
+            state.retrieved_documents = [
+                doc.metadata.copy() | {
+                    "content": doc.page_content
+                }
+                for doc in documents
+            ]
+    
+            state.citations = [
+                {
+                    "source": c.source,
+                    "page": c.page,
+                    "snippet": c.snippet,
+                }
+                for c in citations
+            ]
+    
+            logger.info(
+                "Retrieved %d documents.",
+                len(state.retrieved_documents),
+            )
+    
             return state
-
-        documents, citations = self.pipeline.retrieve(
-            state.rewritten_query
-        )
-
-        if not documents:
-            logger.warning("No documents retrieved.")
-
-            state.retrieved_documents = []
-            state.citations = []
-
-            return state
-
-        state.retrieved_documents = [
-            doc.metadata.copy() | {
-                "content": doc.page_content
-            }
-            for doc in documents
-        ]
-
-        state.citations = [
-            {
-                "source": c.source,
-                "page": c.page,
-                "snippet": c.snippet,
-            }
-            for c in citations
-        ]
-
-        logger.info(
-            "Retrieved %d documents.",
-            len(state.retrieved_documents),
-        )
-
-        return state
 
     def _hybrid_search(self, state: GraphState) -> GraphState:
         """
