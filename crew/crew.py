@@ -23,6 +23,7 @@ class MedicalCrew:
         coordinator_prompt = load_prompt("coordinator_prompt")
         generator_prompt = load_prompt("generator_prompt")
         validator_prompt = load_prompt("validation_prompt")
+
         return [
             Agent(
                 role="Coordinator",
@@ -47,24 +48,94 @@ class MedicalCrew:
     def _build_tasks(self) -> list[Task]:
         return [
             Task(
-                description="Coordinate retrieval and evidence validation for the user query.",
-                expected_output="A structured plan for evidence retrieval.",
+                description="""
+Coordinate the medical workflow.
+
+User Question:
+{query}
+
+Retrieved Context:
+{context}
+
+Your job is to ensure the retrieved evidence is sufficient
+before sending it to the Answer Generator.
+""",
+                expected_output="A structured retrieval and reasoning plan.",
                 agent=self.agents[0],
             ),
             Task(
-                description="Generate the final answer with citations and disclaimer.",
-                expected_output="A polished evidence-based answer.",
+                description="""
+You are an evidence-based medical assistant.
+
+Question:
+{query}
+
+Retrieved Context:
+{context}
+
+Instructions:
+
+- Answer ONLY using the retrieved context.
+- Never invent medical facts.
+- If the answer is not contained in the retrieved context,
+  explicitly state that.
+- Include citations when possible.
+- End with a medical disclaimer.
+""",
+                expected_output="A complete evidence-based medical answer.",
                 agent=self.agents[1],
             ),
             Task(
-                description="Validate the medical accuracy and evidence support of the answer.",
-                expected_output="A validation note.",
+                description="""
+Review the generated answer.
+
+Question:
+{query}
+
+Retrieved Context:
+{context}
+
+Verify:
+
+- Medical accuracy
+- Evidence support
+- Missing citations
+- Hallucinations
+
+If unsupported claims exist, remove them.
+""",
+                expected_output="A validated evidence-based response.",
                 agent=self.agents[2],
             ),
         ]
 
-    def run(self, query: str) -> dict[str, Any]:
-        logger.info("Running CrewAI workflow for query: %s", query)
-        crew = Crew(agents=self.agents, tasks=self.tasks)
-        result = crew.kickoff(inputs={"query": query})
-        return {"query": query, "result": str(result), "status": "completed"}
+    def run(self, query: str, retrieved_docs: list) -> dict[str, Any]:
+        logger.info("Running CrewAI workflow")
+
+        context = "\n\n".join(
+            f"""Source: {doc.source}
+Page: {doc.page}
+
+{doc.text}
+"""
+            for doc in retrieved_docs
+        )
+
+        crew = Crew(
+            agents=self.agents,
+            tasks=self.tasks,
+            verbose=True,
+        )
+
+        result = crew.kickoff(
+            inputs={
+                "query": query,
+                "context": context,
+            }
+        )
+
+        return {
+            "query": query,
+            "answer": str(result),
+            "retrieved_docs": retrieved_docs,
+        }
