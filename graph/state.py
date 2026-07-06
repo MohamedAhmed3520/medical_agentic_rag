@@ -1,16 +1,41 @@
-from dataclasses import dataclass, field
+from __future__ import annotations
 
-@dataclass(slots=False)
+from dataclasses import dataclass, field
+from typing import Any
+
+
+@dataclass(slots=True)
 class GraphState:
+    """State container for the LangGraph workflow."""
+
+    # User Input
     user_query: str = ""
     rewritten_query: str = ""
-    intent: str = ""
+
+    # Router
+    intent: str = "medical"
     should_retrieve: bool = True
-    retrieved_documents: list = field(default_factory=list)
-    reranked_documents: list = field(default_factory=list)
-    citations: list = field(default_factory=list)
+
+    # Retrieval
+    retrieved_documents: list[dict[str, Any]] = field(default_factory=list)
+    reranked_documents: list[dict[str, Any]] = field(default_factory=list)
+
+    # Research Context
     medical_context: str = ""
+
+    # Reflection
     reflection: str = ""
+
+    # Validation
     validation: str = ""
+
+    # Citations
+    citations: list[dict[str, Any]] = field(default_factory=list)
+    citation_text: str = ""
+
+    # Final Response
     answer: str = ""
     final_response: str = ""
+
+    # Error
+    error: str | None = None
