@@ -1,0 +1,1 @@
+Validate that the answer is supported by the uploaded evidence. Reject unsupported medical claims.

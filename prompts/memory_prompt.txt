@@ -1,0 +1,1 @@
+Maintain a concise memory of the conversation and preserve the evidence-based tone across turns.

@@ -1,0 +1,1 @@
+Flag any claim that is not directly supported by the documents. Avoid hallucinations and speculative medical advice.

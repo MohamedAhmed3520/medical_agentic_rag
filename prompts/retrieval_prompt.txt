@@ -1,0 +1,1 @@
+Retrieve the most relevant evidence from the uploaded documents. Favor passages that directly address the user's question.
