@@ -2,17 +2,36 @@ from __future__ import annotations
 
 from typing import Any
 
+from sentence_transformers import CrossEncoder
 from langchain_core.documents import Document
 
 
 class Reranker:
-    """Simple reranker wrapper with configurable model placeholder."""
 
-    def __init__(self, model_name: str = "BAAI/bge-reranker-large") -> None:
-        self.model_name = model_name
+    def __init__(self):
+        self.model = CrossEncoder("BAAI/bge-reranker-base")
 
-    def rerank(self, documents: list[Document], query: str) -> list[Document]:
+    def rerank(
+        self,
+        documents: list[Document],
+        query: str,
+        top_k: int = 5,
+    ) -> list[Document]:
+
         if not documents:
             return []
-        scored = sorted(documents, key=lambda doc: len((doc.page_content or "").split()), reverse=False)
-        return scored[: min(5, len(scored))]
+
+        pairs = [
+            (query, doc.page_content)
+            for doc in documents
+        ]
+
+        scores = self.model.predict(pairs)
+
+        ranked = sorted(
+            zip(documents, scores),
+            key=lambda x: x[1],
+            reverse=True,
+        )
+
+        return [doc for doc, _ in ranked[:top_k]]
